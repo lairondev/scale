@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Criar Nova Escala</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="motorista_id" class="form-label">Motorista</label>
+            <select name="motorista_id" id="motorista_id" class="form-select">
+                {% for motorista in motoristas %}
+                    <option value="{{ motorista.id }}">{{ motorista.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="data" class="form-label">Data</label>
+            <input type="date" name="data" id="data" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="hora_inicio" class="form-label">Hora Início</label>
+            <input type="time" name="hora_inicio" id="hora_inicio" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="hora_fim" class="form-label">Hora Fim</label>
+            <input type="time" name="hora_fim" id="hora_fim" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Criar Escala</button>
+    </form>
+
+    <h3 class="mt-4">Adicionar Motorista</h3>
+    <form method="POST" action="{{ url_for('adicionar_motorista') }}">
+        <div class="mb-3">
+            <label for="nome" class="form-label">Nome do Motorista</label>
+            <input type="text" name="nome" id="nome" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-secondary">Adicionar Motorista</button>
+    </form>
+{% endblock %}

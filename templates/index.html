@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="text-end mb-3">
+        <a href="{{ url_for('criar_escala') }}" class="btn btn-primary">Criar Nova Escala</a>
+    </div>
+    <h2>Escalas Cadastradas</h2>
+    <table class="table table-striped">
+        <thead>
+			<tr>
+				<th>Motorista</th>
+				<th>Data</th>
+				<th>Hora Início</th>
+				<th>Hora Fim</th>
+				<th>Ações</th>
+			</tr>
+			{% for escala in escalas %}
+			<tr>
+				<td>{{ escala.motorista.nome }}</td>
+				<td>{{ escala.data }}</td>
+				<td>{{ escala.hora_inicio }}</td>
+				<td>{{ escala.hora_fim }}</td>
+				<td>
+					<a href="{{ url_for('gerenciar_eventos', escala_id=escala.id) }}" class="btn btn-primary">Gerenciar Eventos</a>
+				</td>
+			</tr>
+			{% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
