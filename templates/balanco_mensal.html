@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Balanço Mensal de Horas dos Motoristas</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Motorista</th>
+            <th>Horas Normais</th>
+            <th>Horas Extras</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for motorista in motoristas %}
+        <tr>
+            <td>{{ motorista.nome }}</td>
+            <td>{{ motorista.horas_normais_formatado }}</td>
+            <td>{{ motorista.horas_extras_formatado }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import db, Motorista, Escala, Evento
 
 app = Flask(__name__)
@@ -12,6 +12,14 @@ db.init_app(app)
 def criar_tabelas():
     with app.app_context():
         db.create_all()
+
+#Função formatar horas em mmodo amigável        
+def formatar_horas_minutos(horas_decimais):
+    horas = int(horas_decimais)  # Parte inteira das horas
+    minutos = int((horas_decimais - horas) * 60)  # Parte decimal em minutos
+    return f"{horas}h{minutos:02d}min"  # Formatação com zero à esquerda para minutos
+
+
 
 @app.route('/')
 def index():
@@ -43,34 +51,64 @@ def gerenciar_eventos(escala_id):
 @app.route('/criar_escala', methods=['GET', 'POST'])
 def criar_escala():
     motoristas = Motorista.query.all()
-    
     if request.method == 'POST':
         motorista_id = request.form['motorista_id']
-        
-        # Convertendo a string para o tipo de dado correto
         data_str = request.form['data']
-        data = datetime.strptime(data_str, '%Y-%m-%d').date()  # Converte para tipo date
-        
+        data = datetime.strptime(data_str, '%Y-%m-%d').date()
         hora_inicio_str = request.form['hora_inicio']
         hora_fim_str = request.form['hora_fim']
         
-        # Convertendo as horas para o tipo datetime ou time, se necessário
         hora_inicio = datetime.strptime(hora_inicio_str, '%H:%M').time()
         hora_fim = datetime.strptime(hora_fim_str, '%H:%M').time()
-        
+
+        # Convertendo para datetime para facilitar cálculos
+        inicio = datetime.combine(data, hora_inicio)
+        fim = datetime.combine(data, hora_fim)
+
+        # Horas limites para cálculo
+        inicio_jornada = datetime.combine(data, datetime.strptime("08:00", "%H:%M").time())
+        fim_jornada = datetime.combine(data, datetime.strptime("17:00", "%H:%M").time())
+
+        # Cálculo das horas normais e extras
+        horas_normais = min(fim, fim_jornada) - max(inicio, inicio_jornada)
+        horas_extras = max(fim - fim_jornada, timedelta(0))
+
+        # Convertendo para horas
+        horas_normais = horas_normais.total_seconds() / 3600 if horas_normais > timedelta(0) else 0
+        horas_extras = horas_extras.total_seconds() / 3600 if horas_extras > timedelta(0) else 0
+
+        # Criando a escala
         nova_escala = Escala(
             motorista_id=motorista_id,
             data=data,
             hora_inicio=hora_inicio,
             hora_fim=hora_fim
         )
-        
+
+        # Atualizando as horas do motorista
+        motorista = Motorista.query.get(motorista_id)
+        motorista.horas_normais += horas_normais
+        motorista.horas_extras += horas_extras
+
         db.session.add(nova_escala)
         db.session.commit()
         
         return redirect(url_for('index'))
     
     return render_template('criar_escala.html', motoristas=motoristas)
+
+
+@app.route('/balanco_mensal')
+def balanco_mensal():
+    motoristas = Motorista.query.all()
+    
+    # Calcula o banco de horas em formato legível para cada motorista
+    for motorista in motoristas:
+        motorista.horas_normais_formatado = formatar_horas_minutos(motorista.horas_normais)
+        motorista.horas_extras_formatado = formatar_horas_minutos(motorista.horas_extras)
+    
+    return render_template('balanco_mensal.html', motoristas=motoristas)
+
 
 
 @app.route('/adicionar_motorista', methods=['POST'])
@@ -82,4 +120,5 @@ def adicionar_motorista():
     return redirect(url_for('criar_escala'))
 
 if __name__ == '__main__':
+    criar_tabelas()
     app.run(debug=True)

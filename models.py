@@ -8,6 +8,8 @@ class Motorista(db.Model):
     __tablename__ = 'motoristas'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(50), nullable=False)
+    horas_normais = db.Column(db.Float, default=0)
+    horas_extras = db.Column(db.Float, default=0) 
 
 class Escala(db.Model):
     __tablename__ = 'escalas'
